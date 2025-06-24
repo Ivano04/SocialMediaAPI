@@ -1,5 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
+
 
 export default function Login() {
   const [username, setUsername] = useState('');
@@ -65,6 +67,11 @@ export default function Login() {
 
         {error && <p style={styles.error}>{error}</p>}
       </form>
+      <p style={{ textAlign: 'center', marginTop: '12px' }}>
+         Non hai un account? <Link to="/register">Registrati</Link>
+      </p>
+
+
     </div>
   );
 }
