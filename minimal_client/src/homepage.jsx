@@ -6,6 +6,98 @@ export default function HomePage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const navigate = useNavigate();
+  const [newPostContent, setNewPostContent] = useState('');
+
+  const handleCreatePost = async (e) => {
+  e.preventDefault();
+  const token = localStorage.getItem('access');
+
+  try {
+    const response = await fetch('http://localhost:8000/api/posts/', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({ content: newPostContent }),
+    });
+
+    if (!response.ok) {
+      throw new Error('Errore durante la creazione del post');
+    }
+
+    setNewPostContent(''); // svuota il campo
+    fetchPosts(); // ricarica i post
+  } catch (err) {
+    console.error(err);
+    alert('Errore nella pubblicazione');
+  }
+  };
+
+const [commentText, setCommentText] = useState({});
+
+const handleLike = async (postId) => {
+  const token = localStorage.getItem('access');
+
+  try {
+    const response = await fetch('http://localhost:8000/api/likes/', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({ post: postId }),
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      alert(data.detail || 'Errore nel mettere like');
+      return;
+    }
+
+    fetchPosts(); // aggiorna il conteggio like
+  } catch (error) {
+    console.error('Errore durante il like:', error);
+    alert('Errore di rete nel mettere like');
+  }
+};
+
+
+const handleCommentSubmit = async (postId) => {
+  const token = localStorage.getItem('access');
+  const comment = commentText[postId]?.trim();
+
+  if (!comment) return;
+
+  try {
+    const response = await fetch('http://localhost:8000/api/comments/', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({
+        post: postId,
+        text: comment,
+      }),
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      alert(data.detail || 'Errore nel pubblicare il commento');
+      return;
+    }
+
+    setCommentText((prev) => ({ ...prev, [postId]: '' }));
+    fetchPosts(); // aggiorna la lista dei commenti
+  } catch (error) {
+    console.error('Errore durante il commento:', error);
+    alert('Errore di rete nel commentare');
+  }
+};
+
 
   const handleLogout = () => {
     localStorage.removeItem('access');
@@ -47,6 +139,17 @@ export default function HomePage() {
     <div style={styles.container}>
       <button onClick={handleLogout} style={styles.logout}>Logout</button>
       <h2 style={styles.title}>Feed del Social</h2>
+      <form onSubmit={handleCreatePost} style={styles.postForm}>
+      <textarea
+        placeholder="Scrivi un nuovo post..."
+        value={newPostContent}
+        onChange={(e) => setNewPostContent(e.target.value)}
+        style={styles.textarea}
+        required
+      />
+      <button type="submit" style={styles.postButton}>Pubblica</button>
+      </form>
+
       {posts.length === 0 ? (
         <p style={styles.center}>Nessun post disponibile.</p>
       ) : (
@@ -65,6 +168,64 @@ export default function HomePage() {
                   })
                 : 'Data non disponibile'}
             </p>
+            {/* --- LIKE --- */}
+    <button
+  onClick={() => handleLike(post.id)}
+  style={{ marginBottom: '10px', cursor: 'pointer' }}>
+  ❤️ {post.likes_count}
+  </button>
+
+
+    {/* --- COMMENTI --- */}
+    <div>
+      <h5>Commenti:</h5>
+      <ul>
+    {(post.comments || []).map((comment) => (
+      <li key={comment.id}>
+        <strong>{comment.author?.username || 'Anonimo'}</strong>: {comment.text}
+      </li>
+    ))}
+  </ul>
+
+
+      <form
+        onSubmit={(e) => {
+          e.preventDefault();
+          handleCommentSubmit(post.id);
+        }}
+        style={{ marginTop: '10px' }}
+      >
+        <input
+          type="text"
+          placeholder="Scrivi un commento..."
+          value={commentText[post.id] || ''}
+          onChange={(e) =>
+            setCommentText((prev) => ({ ...prev, [post.id]: e.target.value }))
+          }
+          required
+          style={{
+            padding: '8px',
+            borderRadius: '6px',
+            border: '1px solid #ccc',
+            width: '80%',
+            marginRight: '8px',
+          }}
+        />
+        <button
+          type="submit"
+          style={{
+            padding: '8px 12px',
+            backgroundColor: '#4f46e5',
+            color: '#fff',
+            border: 'none',
+            borderRadius: '6px',
+            cursor: 'pointer',
+          }}
+        >
+          Invia
+        </button>
+      </form>
+    </div>
           </div>
         ))
       )}
@@ -124,4 +285,28 @@ const styles = {
     textAlign: 'center',
     marginTop: '30px',
   },
+    postForm: {
+    marginBottom: '30px',
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '10px',
+  },
+  textarea: {
+    padding: '10px',
+    fontSize: '16px',
+    borderRadius: '8px',
+    border: '1px solid #ccc',
+    resize: 'vertical',
+    minHeight: '80px',
+  },
+  postButton: {
+    padding: '10px',
+    backgroundColor: '#4f46e5',
+    color: '#fff',
+    border: 'none',
+    borderRadius: '8px',
+    cursor: 'pointer',
+    fontWeight: 'bold',
+  },
+
 };

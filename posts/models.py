@@ -15,3 +15,6 @@ class Comment(models.Model):
 class Like(models.Model):
     post = models.ForeignKey(Post, related_name="likes", on_delete=models.CASCADE)
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+
+    class Meta:
+        unique_together = ('post', 'user')  # previene like duplicati

@@ -9,7 +9,7 @@ https://docs.djangoproject.com/en/5.2/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.2/ref/settings/
 """
-
+from datetime import timedelta
 from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -132,7 +132,7 @@ AUTH_USER_MODEL = 'accounts.CustomUser'
 
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:3000",  # per React
-    "http://localhost:5173",  # per Vite
+    "http://localhost:5175",  # per Vite
 ]
 
 REST_FRAMEWORK = {
@@ -145,3 +145,8 @@ REST_FRAMEWORK = {
 }
 
 CORS_ALLOW_ALL_ORIGINS = True
+
+SIMPLE_JWT = {
+    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=30),   # default is 5 minutes
+    'REFRESH_TOKEN_LIFETIME': timedelta(hours=1),      # default is 1 day
+}
