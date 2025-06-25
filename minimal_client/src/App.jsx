@@ -4,7 +4,8 @@ import Login from './Login';
 import HomePage from './HomePage';
 import PrivateRoute from './PrivateRoute';
 import Register from './Register';
-
+import AdminPanel from './AdminPanel';
+import AdminRoute from './AdminRoute';
 
 function App() {
   return (
@@ -16,7 +17,7 @@ function App() {
             </PrivateRoute>
           }/>
         <Route path="/register" element={<Register />} />
-
+        <Route path="/admin-panel" element={<AdminRoute> <AdminPanel /> </AdminRoute>} />
       </Routes>
     </Router>
   );

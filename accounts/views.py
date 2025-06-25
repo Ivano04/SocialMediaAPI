@@ -1,7 +1,7 @@
-from rest_framework import generics
+from rest_framework import generics, viewsets
 from .models import CustomUser
 from .serializers import UserSerializer
-from rest_framework.permissions import IsAuthenticated, AllowAny
+from rest_framework.permissions import IsAuthenticated, AllowAny, IsAdminUser
 from .serializers import RegisterSerializer
 from django.contrib.auth import get_user_model
 from rest_framework.views import APIView
@@ -10,6 +10,10 @@ from django.shortcuts import get_object_or_404
 
 User = get_user_model()
 
+class UserAdminViewSet(viewsets.ModelViewSet):
+    queryset = CustomUser.objects.all()
+    serializer_class = UserSerializer
+    permission_classes = [IsAdminUser]
 class RegisterUserView(generics.CreateAPIView):
     queryset = User.objects.all()
     serializer_class = RegisterSerializer

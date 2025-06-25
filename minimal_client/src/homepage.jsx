@@ -1,14 +1,19 @@
 import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import FollowButton from './FollowButton';
 
 export default function HomePage() {
   const [posts, setPosts] = useState([]);
+  const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [newPostContent, setNewPostContent] = useState('');
   const [commentText, setCommentText] = useState({});
   const navigate = useNavigate();
+  const token = localStorage.getItem('access');
+  const [isAdmin, setIsAdmin] = useState(false);
+
+
 
   const handleCreatePost = async (e) => {
     e.preventDefault();
@@ -130,124 +135,198 @@ export default function HomePage() {
     }
   };
 
+  const fetchUsers = async () => {
+    const token = localStorage.getItem('access');
+    try {
+      const res = await fetch('http://localhost:8000/api/accounts/', {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (!res.ok) throw new Error('Errore nel recupero utenti');
+      const data = await res.json();
+      setUsers(data);
+    } catch (err) {
+      console.error(err);
+    }
+  };
+  const fetchIsAdmin = async () => {
+  const token = localStorage.getItem('access');
+  try {
+    const res = await fetch('http://localhost:8000/api/accounts/', {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    if (!res.ok) throw new Error();
+    const data = await res.json();
+    const userId = JSON.parse(atob(token.split('.')[1])).user_id;
+    const currentUser = data.find(u => u.id === userId);
+    console.log("Admin check:", currentUser);
+    if (currentUser?.is_staff) {
+      setIsAdmin(true);
+    }
+  } catch (err) {
+    console.error("Errore nel controllo isAdmin", err);
+  }
+};
+
+
   useEffect(() => {
     fetchPosts();
+    fetchUsers();
+    fetchIsAdmin();
   }, []);
 
   if (loading) return <p style={styles.center}>Caricamento...</p>;
   if (error) return <p style={styles.error}>{error}</p>;
 
-  return (
-    <div style={styles.container}>
-      <button onClick={handleLogout} style={styles.logout}>Logout</button>
-      <h2 style={styles.title}>Feed del Social</h2>
-      <form onSubmit={handleCreatePost} style={styles.postForm}>
-        <textarea
-          placeholder="Scrivi un nuovo post..."
-          value={newPostContent}
-          onChange={(e) => setNewPostContent(e.target.value)}
-          style={styles.textarea}
-          required
-        />
-        <button type="submit" style={styles.postButton}>Pubblica</button>
-      </form>
+  const loggedUserId = JSON.parse(atob(localStorage.getItem('access').split('.')[1])).user_id;
 
-      {posts.length === 0 ? (
-        <p style={styles.center}>Nessun post disponibile.</p>
-      ) : (
-        posts.map((post) => (
-          <div key={post.id} style={styles.post}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-              <h4 style={styles.author}>{post.author?.username || 'Utente sconosciuto'}</h4>
-              {post.author?.id !== post.loggedUserId && (
+  return (
+    <div style={styles.pageWrapper}>
+      <div style={styles.sidebar}>
+        <h3>Utenti registrati</h3>
+        <ul style={{ listStyleType: 'none', paddingLeft: 0 }}>
+          {users.map((user) => (
+            <li key={user.id} style={{ marginBottom: '10px' }}>
+              {user.username}
+              {user.id !== loggedUserId && (
                 <FollowButton
-                  username={post.author.username}
-                  initialIsFollowing={post.isFollowing}
+                  username={user.username}
+                  initialIsFollowing={user.followers?.includes(loggedUserId)}
                 />
               )}
-            </div>
-            <p style={styles.content}>{post.content}</p>
-            <p style={styles.date}>
-              {post.created_at
-                ? new Date(post.created_at).toLocaleDateString('it-IT', {
-                    day: '2-digit',
-                    month: '2-digit',
-                    year: 'numeric',
-                    hour: '2-digit',
-                    minute: '2-digit',
-                  })
-                : 'Data non disponibile'}
-            </p>
-            <button
-              onClick={() => handleLike(post.id)}
-              style={{ marginBottom: '10px', cursor: 'pointer' }}>
-              ❤️ {post.likes_count}
-            </button>
-            <div>
-              <h5>Commenti:</h5>
-              <ul>
-                {(post.comments || []).map((comment) => (
-                  <li key={comment.id}>
-                    <strong>{comment.author?.username || 'Anonimo'}</strong>: {comment.text}
-                  </li>
-                ))}
-              </ul>
-              <form
-                onSubmit={(e) => {
-                  e.preventDefault();
-                  handleCommentSubmit(post.id);
-                }}
-                style={{ marginTop: '10px' }}
-              >
-                <input
-                  type="text"
-                  placeholder="Scrivi un commento..."
-                  value={commentText[post.id] || ''}
-                  onChange={(e) =>
-                    setCommentText((prev) => ({ ...prev, [post.id]: e.target.value }))
-                  }
-                  required
-                  style={{
-                    padding: '8px',
-                    borderRadius: '6px',
-                    border: '1px solid #ccc',
-                    width: '80%',
-                    marginRight: '8px',
+            </li>
+          ))}
+        </ul>
+      </div>
+
+      <div style={styles.container}>
+        <button onClick={handleLogout} style={styles.logout}>Logout</button>
+        {isAdmin && (
+          <Link to="/admin-panel" style={styles.adminLink}>
+            Admin Panel
+          </Link>
+        )}
+        <h2 style={styles.title}>Feed del Social</h2>
+        <form onSubmit={handleCreatePost} style={styles.postForm}>
+          <textarea
+            placeholder="Scrivi un nuovo post..."
+            value={newPostContent}
+            onChange={(e) => setNewPostContent(e.target.value)}
+            style={styles.textarea}
+            required
+          />
+          <button type="submit" style={styles.postButton}>Pubblica</button>
+        </form>
+
+        {posts.length === 0 ? (
+          <p style={styles.center}>Nessun post disponibile.</p>
+        ) : (
+          posts.map((post) => (
+            <div key={post.id} style={styles.post}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <h4 style={styles.author}>{post.author?.username || 'Utente sconosciuto'}</h4>
+                {post.author?.id !== post.loggedUserId && (
+                  <FollowButton
+                    username={post.author.username}
+                    initialIsFollowing={post.isFollowing}
+                  />
+                )}
+              </div>
+              <p style={styles.content}>{post.content}</p>
+              <p style={styles.date}>
+                {post.created_at
+                  ? new Date(post.created_at).toLocaleDateString('it-IT', {
+                      day: '2-digit',
+                      month: '2-digit',
+                      year: 'numeric',
+                      hour: '2-digit',
+                      minute: '2-digit',
+                    })
+                  : 'Data non disponibile'}
+              </p>
+              <button
+                onClick={() => handleLike(post.id)}
+                style={{ marginBottom: '10px', cursor: 'pointer' }}>
+                ❤️ {post.likes_count}
+              </button>
+              <div>
+                <h5>Commenti:</h5>
+                <ul>
+                  {(post.comments || []).map((comment) => (
+                    <li key={comment.id}>
+                      <strong>{comment.author?.username || 'Anonimo'}</strong>: {comment.text}
+                    </li>
+                  ))}
+                </ul>
+                <form
+                  onSubmit={(e) => {
+                    e.preventDefault();
+                    handleCommentSubmit(post.id);
                   }}
-                />
-                <button
-                  type="submit"
-                  style={{
-                    padding: '8px 12px',
-                    backgroundColor: '#4f46e5',
-                    color: '#fff',
-                    border: 'none',
-                    borderRadius: '6px',
-                    cursor: 'pointer',
-                  }}
+                  style={{ marginTop: '10px' }}
                 >
-                  Invia
-                </button>
-              </form>
+                  <input
+                    type="text"
+                    placeholder="Scrivi un commento..."
+                    value={commentText[post.id] || ''}
+                    onChange={(e) =>
+                      setCommentText((prev) => ({ ...prev, [post.id]: e.target.value }))
+                    }
+                    required
+                    style={{
+                      padding: '8px',
+                      borderRadius: '6px',
+                      border: '1px solid #ccc',
+                      width: '80%',
+                      marginRight: '8px',
+                    }}
+                  />
+                  <button
+                    type="submit"
+                    style={{
+                      padding: '8px 12px',
+                      backgroundColor: '#4f46e5',
+                      color: '#fff',
+                      border: 'none',
+                      borderRadius: '6px',
+                      cursor: 'pointer',
+                    }}
+                  >
+                    Invia
+                  </button>
+                </form>
+              </div>
             </div>
-          </div>
-        ))
-      )}
+          ))
+        )}
+      </div>
     </div>
   );
 }
 
 const styles = {
-  container: {
-    maxWidth: '600px',
+  pageWrapper: {
+    display: 'flex',
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    maxWidth: '1000px',
     margin: '40px auto',
+    gap: '40px',
     padding: '0 20px',
+  },
+  sidebar: {
+    width: '250px',
+    backgroundColor: '#f0f0f0',
+    padding: '20px',
+    borderRadius: '10px',
+  },
+  container: {
+    flex: 1,
     position: 'relative',
   },
   logout: {
     position: 'absolute',
-    top: '20px',
-    right: '20px',
+    top: '0',
+    right: '0',
     padding: '8px 12px',
     border: 'none',
     backgroundColor: '#e53935',
@@ -312,4 +391,16 @@ const styles = {
     cursor: 'pointer',
     fontWeight: 'bold',
   },
+  adminLink: {
+  position: 'absolute',
+  top: '20px',
+  right: '110px',
+  padding: '8px 12px',
+  backgroundColor: '#333',
+  color: '#fff',
+  borderRadius: '6px',
+  textDecoration: 'none',
+},
+
 };
+
