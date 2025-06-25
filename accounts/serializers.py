@@ -3,9 +3,13 @@ from .models import CustomUser
 from django.contrib.auth import get_user_model
 
 class UserSerializer(serializers.ModelSerializer):
+    followers = serializers.PrimaryKeyRelatedField(many=True, read_only=True)
+    following = serializers.PrimaryKeyRelatedField(many=True, read_only=True)
+
     class Meta:
         model = CustomUser
-        fields = ['id', 'username', 'email', 'bio', 'following']
+        fields = ['id', 'username', 'email', 'bio', 'following', 'followers']
+
 
 User = get_user_model()
 
