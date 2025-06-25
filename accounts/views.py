@@ -27,10 +27,6 @@ class UserList(generics.ListAPIView):
     serializer_class = UserSerializer
     permission_classes = [IsAuthenticated]
 
-from rest_framework.views import APIView
-from rest_framework.response import Response
-from django.shortcuts import get_object_or_404
-
 class FollowUserView(APIView):
     permission_classes = [IsAuthenticated]
 
@@ -54,3 +50,10 @@ class FollowUserView(APIView):
 
         request.user.following.remove(user_to_unfollow)
         return Response({"detail": f"You have unfollowed {username}."}, status=204)
+
+class AdminSelfView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        serializer = UserSerializer(request.user)
+        return Response(serializer.data)

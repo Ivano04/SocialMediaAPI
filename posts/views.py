@@ -5,6 +5,7 @@ from .models import Post, Comment, Like
 from .serializers import PostSerializer, CommentSerializer, LikeSerializer
 from .permissions import IsAuthorOrReadOnly
 from .permissions import IsAuthorOrAdmin
+from .permissions import IsAdminUser
 
 class PostViewSet(viewsets.ModelViewSet):
     queryset = Post.objects.all().order_by('-created_at')
@@ -42,3 +43,12 @@ class LikeViewSet(viewsets.ModelViewSet):
         serializer = self.get_serializer(like)
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
+class AdminPostViewSet(viewsets.ModelViewSet):
+    queryset = Post.objects.all().order_by('-created_at')
+    serializer_class = PostSerializer
+    permission_classes = [IsAuthenticated, IsAdminUser]
+
+class AdminCommentViewSet(viewsets.ModelViewSet):
+    queryset = Comment.objects.all().order_by('-created_at')
+    serializer_class = CommentSerializer
+    permission_classes = [IsAuthenticated, IsAdminUser]

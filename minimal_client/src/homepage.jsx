@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import FollowButton from './FollowButton';
 
+
 export default function HomePage() {
   const [posts, setPosts] = useState([]);
   const [users, setUsers] = useState([]);
@@ -11,7 +12,7 @@ export default function HomePage() {
   const [commentText, setCommentText] = useState({});
   const navigate = useNavigate();
   const token = localStorage.getItem('access');
-  const [isAdmin, setIsAdmin] = useState(false);
+
 
 
 
@@ -148,30 +149,10 @@ export default function HomePage() {
       console.error(err);
     }
   };
-  const fetchIsAdmin = async () => {
-  const token = localStorage.getItem('access');
-  try {
-    const res = await fetch('http://localhost:8000/api/accounts/', {
-      headers: { Authorization: `Bearer ${token}` },
-    });
-    if (!res.ok) throw new Error();
-    const data = await res.json();
-    const userId = JSON.parse(atob(token.split('.')[1])).user_id;
-    const currentUser = data.find(u => u.id === userId);
-    console.log("Admin check:", currentUser);
-    if (currentUser?.is_staff) {
-      setIsAdmin(true);
-    }
-  } catch (err) {
-    console.error("Errore nel controllo isAdmin", err);
-  }
-};
-
 
   useEffect(() => {
     fetchPosts();
     fetchUsers();
-    fetchIsAdmin();
   }, []);
 
   if (loading) return <p style={styles.center}>Caricamento...</p>;
@@ -200,11 +181,6 @@ export default function HomePage() {
 
       <div style={styles.container}>
         <button onClick={handleLogout} style={styles.logout}>Logout</button>
-        {isAdmin && (
-          <Link to="/admin-panel" style={styles.adminLink}>
-            Admin Panel
-          </Link>
-        )}
         <h2 style={styles.title}>Feed del Social</h2>
         <form onSubmit={handleCreatePost} style={styles.postForm}>
           <textarea
@@ -391,16 +367,6 @@ const styles = {
     cursor: 'pointer',
     fontWeight: 'bold',
   },
-  adminLink: {
-  position: 'absolute',
-  top: '20px',
-  right: '110px',
-  padding: '8px 12px',
-  backgroundColor: '#333',
-  color: '#fff',
-  borderRadius: '6px',
-  textDecoration: 'none',
-},
 
 };
 
