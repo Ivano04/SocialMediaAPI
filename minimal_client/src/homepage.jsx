@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import FollowButton from './FollowButton';
-
 
 export default function HomePage() {
   const [posts, setPosts] = useState([]);
@@ -9,25 +8,28 @@ export default function HomePage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [newPostContent, setNewPostContent] = useState('');
+  const [newPostImage, setNewPostImage] = useState(null);
   const [commentText, setCommentText] = useState({});
   const navigate = useNavigate();
   const token = localStorage.getItem('access');
-
-
-
 
   const handleCreatePost = async (e) => {
     e.preventDefault();
     const token = localStorage.getItem('access');
 
+    const formData = new FormData();
+    formData.append('content', newPostContent);
+    if (newPostImage) {
+      formData.append('image', newPostImage);
+    }
+
     try {
       const response = await fetch('http://localhost:8000/api/posts/', {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json',
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify({ content: newPostContent }),
+        body: formData,
       });
 
       if (!response.ok) {
@@ -35,10 +37,55 @@ export default function HomePage() {
       }
 
       setNewPostContent('');
+      setNewPostImage(null);
       fetchPosts();
     } catch (err) {
       console.error(err);
       alert('Errore nella pubblicazione');
+    }
+  };
+
+  const fetchPosts = async () => {
+    const token = localStorage.getItem('access');
+    try {
+      const response = await fetch('http://localhost:8000/api/posts/', {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      if (!response.ok) {
+        throw new Error('Errore nel recupero dei post');
+      }
+
+      const data = await response.json();
+      const tokenPayload = JSON.parse(atob(token.split('.')[1]));
+      const loggedUserId = tokenPayload.user_id;
+
+      setPosts(
+        data.map((post) => ({
+          ...post,
+          isFollowing: post.author.followers?.includes(loggedUserId),
+          loggedUserId: loggedUserId,
+        }))
+      );
+    } catch (err) {
+      console.error(err);
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchUsers = async () => {
+    const token = localStorage.getItem('access');
+    try {
+      const res = await fetch('http://localhost:8000/api/accounts/', {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (!res.ok) throw new Error('Errore nel recupero utenti');
+      const data = await res.json();
+      setUsers(data);
+    } catch (err) {
+      console.error(err);
     }
   };
 
@@ -106,50 +153,6 @@ export default function HomePage() {
     navigate('/');
   };
 
-  const fetchPosts = async () => {
-    const token = localStorage.getItem('access');
-    try {
-      const response = await fetch('http://localhost:8000/api/posts/', {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-
-      if (!response.ok) {
-        throw new Error('Errore nel recupero dei post');
-      }
-
-      const data = await response.json();
-      const tokenPayload = JSON.parse(atob(token.split('.')[1]));
-      const loggedUserId = tokenPayload.user_id;
-
-      setPosts(
-        data.map((post) => ({
-          ...post,
-          isFollowing: post.author.followers?.includes(loggedUserId),
-          loggedUserId: loggedUserId,
-        }))
-      );
-    } catch (err) {
-      console.error(err);
-      setError(err.message);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const fetchUsers = async () => {
-    const token = localStorage.getItem('access');
-    try {
-      const res = await fetch('http://localhost:8000/api/accounts/', {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      if (!res.ok) throw new Error('Errore nel recupero utenti');
-      const data = await res.json();
-      setUsers(data);
-    } catch (err) {
-      console.error(err);
-    }
-  };
-
   useEffect(() => {
     fetchPosts();
     fetchUsers();
@@ -182,13 +185,19 @@ export default function HomePage() {
       <div style={styles.container}>
         <button onClick={handleLogout} style={styles.logout}>Logout</button>
         <h2 style={styles.title}>Feed del Social</h2>
-        <form onSubmit={handleCreatePost} style={styles.postForm}>
+
+        <form onSubmit={handleCreatePost} style={styles.postForm} encType="multipart/form-data">
           <textarea
             placeholder="Scrivi un nuovo post..."
             value={newPostContent}
             onChange={(e) => setNewPostContent(e.target.value)}
             style={styles.textarea}
             required
+          />
+          <input
+            type="file"
+            accept="image/*"
+            onChange={(e) => setNewPostImage(e.target.files[0])}
           />
           <button type="submit" style={styles.postButton}>Pubblica</button>
         </form>
@@ -208,6 +217,14 @@ export default function HomePage() {
                 )}
               </div>
               <p style={styles.content}>{post.content}</p>
+              {post.image && (
+              <img
+                src={post.image}  // ✅ ora funziona anche con URL assoluto
+                alt="post"
+                style={{ maxWidth: '100%', borderRadius: '8px', marginBottom: '10px' }}
+              />
+            )}
+
               <p style={styles.date}>
                 {post.created_at
                   ? new Date(post.created_at).toLocaleDateString('it-IT', {
@@ -367,6 +384,5 @@ const styles = {
     cursor: 'pointer',
     fontWeight: 'bold',
   },
-
 };
 
