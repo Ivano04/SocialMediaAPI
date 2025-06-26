@@ -4,6 +4,8 @@ import Login from './Login';
 import HomePage from './HomePage';
 import PrivateRoute from './PrivateRoute';
 import Register from './Register';
+import AdminUserList from './AdminUserList';
+
 
 
 function App() {
@@ -16,6 +18,10 @@ function App() {
             </PrivateRoute>
           }/>
         <Route path="/register" element={<Register />} />
+          <Route path="/admin" element={<PrivateRoute> <AdminUserList /> </PrivateRoute>
+  }
+/>
+
       </Routes>
     </Router>
   );
