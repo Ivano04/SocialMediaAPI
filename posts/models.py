@@ -19,3 +19,14 @@ class Like(models.Model):
 
     class Meta:
         unique_together = ('post', 'user')
+
+class Notification(models.Model):
+    recipient = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='notifications')
+    actor = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='sent_notifications')
+    verb = models.CharField(max_length=255)
+    target_post = models.ForeignKey(Post, null=True, blank=True, on_delete=models.CASCADE)
+    created_at = models.DateTimeField(auto_now_add=True)
+    is_read = models.BooleanField(default=False)  # ← nuovo campo
+
+    class Meta:
+        ordering = ['-created_at']

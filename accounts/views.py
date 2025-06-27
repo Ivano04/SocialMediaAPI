@@ -7,6 +7,7 @@ from django.contrib.auth import get_user_model
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from django.shortcuts import get_object_or_404
+from posts.models import Notification
 
 User = get_user_model()
 
@@ -40,6 +41,13 @@ class FollowUserView(APIView):
             return Response({"detail": "You are already following this user."}, status=400)
 
         request.user.following.add(user_to_follow)
+
+        Notification.objects.create(
+            recipient=user_to_follow,
+            actor=request.user,
+            verb="ha iniziato a seguirti"
+        )
+
         return Response({"detail": f"You are now following {username}."}, status=201)
 
     def delete(self, request, username):

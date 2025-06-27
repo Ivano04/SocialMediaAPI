@@ -10,7 +10,8 @@ export default function HomePage() {
   const [newPostContent, setNewPostContent] = useState('');
   const [newPostImage, setNewPostImage] = useState(null);
   const [commentText, setCommentText] = useState({});
-  const [likedPosts, setLikedPosts] = useState(new Set());
+  const [unreadCount, setUnreadCount] = useState(0);
+  const [likedPosts, setLikedPosts] = useState([]);
 
   const navigate = useNavigate();
   const token = localStorage.getItem('access');
@@ -20,24 +21,17 @@ export default function HomePage() {
 
   const handleCreatePost = async (e) => {
     e.preventDefault();
-
     const formData = new FormData();
     formData.append('content', newPostContent);
-    if (newPostImage) {
-      formData.append('image', newPostImage);
-    }
+    if (newPostImage) formData.append('image', newPostImage);
 
     try {
       const response = await fetch('http://localhost:8000/api/posts/', {
         method: 'POST',
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
+        headers: { Authorization: `Bearer ${token}` },
         body: formData,
       });
-
       if (!response.ok) throw new Error('Errore durante la creazione del post');
-
       setNewPostContent('');
       setNewPostImage(null);
       fetchPosts();
@@ -52,19 +46,11 @@ export default function HomePage() {
       const response = await fetch('http://localhost:8000/api/posts/', {
         headers: { Authorization: `Bearer ${token}` },
       });
-
       if (!response.ok) throw new Error('Errore nel recupero dei post');
-
       const data = await response.json();
       setPosts(data);
-
-      const likedPostIds = new Set();
-      data.forEach(post => {
-        if (post.likes.some(like => like.user === loggedUserId)) {
-          likedPostIds.add(post.id);
-        }
-      });
-      setLikedPosts(likedPostIds);
+      const liked = data.filter(post => post.likes?.some(like => like.user === loggedUserId)).map(post => post.id);
+      setLikedPosts(liked);
     } catch (err) {
       console.error(err);
       setError(err.message);
@@ -86,6 +72,25 @@ export default function HomePage() {
     }
   };
 
+  const fetchNotifications = async () => {
+    try {
+      const res = await fetch('http://localhost:8000/api/notifications/unread_count/', {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (!res.ok) throw new Error('Errore nel recupero notifiche');
+      const data = await res.json();
+      setUnreadCount(data.unread_count);
+    } catch (err) {
+      console.error('Errore notifiche:', err);
+    }
+  };
+
+  const handleLogout = () => {
+    localStorage.removeItem('access');
+    localStorage.removeItem('refresh');
+    navigate('/');
+  };
+
   const handleLike = async (postId) => {
     try {
       const response = await fetch('http://localhost:8000/api/likes/', {
@@ -96,24 +101,16 @@ export default function HomePage() {
         },
         body: JSON.stringify({ post: postId }),
       });
-
-      if (response.status === 201) {
-        setLikedPosts(prev => new Set(prev).add(postId));
-      } else if (response.status === 204) {
-        setLikedPosts(prev => {
-          const updated = new Set(prev);
-          updated.delete(postId);
-          return updated;
-        });
+      if (!response.ok) throw new Error('Errore nel mettere like');
+      if (likedPosts.includes(postId)) {
+        setLikedPosts(likedPosts.filter(id => id !== postId));
       } else {
-        const data = await response.json();
-        alert(data.detail || 'Errore nel gestire il like');
+        setLikedPosts([...likedPosts, postId]);
       }
-
       fetchPosts();
     } catch (error) {
       console.error(error);
-      alert('Errore di rete nel gestire il like');
+      alert('Errore di rete nel mettere like');
     }
   };
 
@@ -130,9 +127,7 @@ export default function HomePage() {
         },
         body: JSON.stringify({ post: postId, text: comment }),
       });
-
       if (!response.ok) throw new Error('Errore nel commento');
-
       setCommentText(prev => ({ ...prev, [postId]: '' }));
       fetchPosts();
     } catch (error) {
@@ -141,15 +136,10 @@ export default function HomePage() {
     }
   };
 
-  const handleLogout = () => {
-    localStorage.removeItem('access');
-    localStorage.removeItem('refresh');
-    navigate('/');
-  };
-
   useEffect(() => {
     fetchPosts();
     fetchUsers();
+    fetchNotifications();
   }, []);
 
   if (loading) return <p style={styles.center}>Caricamento...</p>;
@@ -180,7 +170,13 @@ export default function HomePage() {
       </div>
 
       <div style={styles.container}>
-        <button onClick={handleLogout} style={styles.logout}>Logout</button>
+        <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+          <button onClick={handleLogout} style={styles.logout}>Logout</button>
+          <button onClick={() => navigate('/notifications')} style={styles.notificationButton}>
+            🔔 Notifiche {unreadCount > 0 && <span style={styles.badge}>{unreadCount}</span>}
+          </button>
+        </div>
+
         <h2 style={styles.title}>Feed del Social</h2>
 
         <form onSubmit={handleCreatePost} style={styles.postForm} encType="multipart/form-data">
@@ -221,18 +217,13 @@ export default function HomePage() {
                   style={{ maxWidth: '100%', borderRadius: '8px', marginBottom: '10px' }}
                 />
               )}
-              <p style={styles.date}>
-                {post.created_at ? new Date(post.created_at).toLocaleString('it-IT') : 'Data non disponibile'}
-              </p>
+              <p style={styles.date}>{post.created_at ? new Date(post.created_at).toLocaleString('it-IT') : 'Data non disponibile'}</p>
               <button
                 onClick={() => handleLike(post.id)}
                 style={{
                   marginBottom: '10px',
                   cursor: 'pointer',
-                  backgroundColor: likedPosts.has(post.id) ? '#ffcccb' : '#f0f0f0',
-                  border: '1px solid #ccc',
-                  padding: '6px 12px',
-                  borderRadius: '6px'
+                  color: likedPosts.includes(post.id) ? 'red' : 'black'
                 }}
               >
                 ❤️ {post.likes_count}
@@ -289,15 +280,29 @@ const styles = {
     position: 'relative',
   },
   logout: {
-    position: 'absolute',
-    top: '0',
-    right: '0',
     padding: '8px 12px',
     border: 'none',
     backgroundColor: '#e53935',
     color: '#fff',
     borderRadius: '6px',
     cursor: 'pointer',
+  },
+  notificationButton: {
+    padding: '8px 12px',
+    border: 'none',
+    backgroundColor: '#4f46e5',
+    color: '#fff',
+    borderRadius: '6px',
+    cursor: 'pointer',
+    position: 'relative',
+  },
+  badge: {
+    backgroundColor: 'red',
+    borderRadius: '50%',
+    color: 'white',
+    padding: '2px 6px',
+    fontSize: '12px',
+    marginLeft: '6px',
   },
   title: {
     textAlign: 'center',
@@ -367,4 +372,3 @@ const styles = {
     cursor: 'pointer',
   },
 };
-

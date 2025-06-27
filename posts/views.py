@@ -1,11 +1,10 @@
 from django.shortcuts import render
-from rest_framework import viewsets
-from rest_framework.permissions import IsAuthenticated, IsAuthenticatedOrReadOnly, AllowAny
-from .models import Post, Comment, Like
-from .serializers import PostSerializer, CommentSerializer, LikeSerializer
-from .permissions import IsAuthorOrReadOnly, IsAuthorOrAdmin, IsAdminUser
-from rest_framework import status
+from rest_framework import viewsets, status
+from rest_framework.permissions import IsAuthenticated, IsAuthenticatedOrReadOnly
 from rest_framework.response import Response
+from .models import Post, Comment, Like, Notification
+from .serializers import PostSerializer, CommentSerializer, LikeSerializer, NotificationSerializer
+from .permissions import IsAuthorOrReadOnly, IsAuthorOrAdmin, IsAdminUser
 
 class PostViewSet(viewsets.ModelViewSet):
     queryset = Post.objects.all().order_by('-created_at')
@@ -21,7 +20,15 @@ class CommentViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticatedOrReadOnly, IsAuthorOrAdmin]
 
     def perform_create(self, serializer):
-        serializer.save(author=self.request.user)
+        comment = serializer.save(author=self.request.user)
+        post = comment.post
+        if post.author != self.request.user:
+            Notification.objects.create(
+                recipient=post.author,
+                actor=self.request.user,
+                verb="ha commentato il tuo post",
+                target_post=post
+            )
 
 class LikeViewSet(viewsets.ModelViewSet):
     queryset = Like.objects.all()
@@ -38,8 +45,26 @@ class LikeViewSet(viewsets.ModelViewSet):
             return Response({'detail': 'Like rimosso'}, status=status.HTTP_204_NO_CONTENT)
 
         like = Like.objects.create(post_id=post_id, user=user)
+        post = Post.objects.get(id=post_id)
+        if post.author != user:
+            Notification.objects.create(
+                recipient=post.author,
+                actor=user,
+                verb="ha messo like al tuo post",
+                target_post=post
+            )
+
         serializer = self.get_serializer(like)
         return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+class NotificationViewSet(viewsets.ReadOnlyModelViewSet):
+    serializer_class = NotificationSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        qs = Notification.objects.filter(recipient=self.request.user)
+        qs.update(is_read=True)  # ← segna letti all'accesso
+        return qs
 
 class AdminPostViewSet(viewsets.ModelViewSet):
     queryset = Post.objects.all().order_by('-created_at')
