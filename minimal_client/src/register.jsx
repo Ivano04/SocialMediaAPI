@@ -13,18 +13,34 @@ export default function Register() {
     e.preventDefault();
 
     try {
-      const response = await fetch('http://localhost:8000/api/accounts/register/', {
+      // 1. REGISTRAZIONE
+      const registerResponse = await fetch('http://localhost:8000/api/accounts/register/', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ username, email, password }),
       });
 
-      const data = await response.json();
-
-      if (response.ok) {
-        navigate('/'); // vai alla login page
-      } else {
+      if (!registerResponse.ok) {
+        const data = await registerResponse.json();
         setError(data.username || data.email || data.password || 'Errore nella registrazione');
+        return;
+      }
+
+      // 2. LOGIN AUTOMATICO
+      const loginResponse = await fetch('http://localhost:8000/api/accounts/token/', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username, password }),
+      });
+
+      const loginData = await loginResponse.json();
+
+      if (loginResponse.ok) {
+        localStorage.setItem('access', loginData.access);
+        localStorage.setItem('refresh', loginData.refresh);
+        navigate('/home');
+      } else {
+        setError('Registrazione riuscita, ma errore nel login automatico');
       }
     } catch (err) {
       console.error(err);

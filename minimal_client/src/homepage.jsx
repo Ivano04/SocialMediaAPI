@@ -10,9 +10,10 @@ export default function HomePage() {
   const [newPostContent, setNewPostContent] = useState('');
   const [newPostImage, setNewPostImage] = useState(null);
   const [commentText, setCommentText] = useState({});
+  const [likedPosts, setLikedPosts] = useState(new Set());
+
   const navigate = useNavigate();
   const token = localStorage.getItem('access');
-
   const payload = token ? JSON.parse(atob(token.split('.')[1])) : null;
   const loggedUserId = payload?.user_id;
   const isAdmin = payload?.is_staff;
@@ -56,6 +57,14 @@ export default function HomePage() {
 
       const data = await response.json();
       setPosts(data);
+
+      const likedPostIds = new Set();
+      data.forEach(post => {
+        if (post.likes.some(like => like.user === loggedUserId)) {
+          likedPostIds.add(post.id);
+        }
+      });
+      setLikedPosts(likedPostIds);
     } catch (err) {
       console.error(err);
       setError(err.message);
@@ -88,12 +97,23 @@ export default function HomePage() {
         body: JSON.stringify({ post: postId }),
       });
 
-      if (!response.ok) throw new Error('Errore nel mettere like');
+      if (response.status === 201) {
+        setLikedPosts(prev => new Set(prev).add(postId));
+      } else if (response.status === 204) {
+        setLikedPosts(prev => {
+          const updated = new Set(prev);
+          updated.delete(postId);
+          return updated;
+        });
+      } else {
+        const data = await response.json();
+        alert(data.detail || 'Errore nel gestire il like');
+      }
 
       fetchPosts();
     } catch (error) {
       console.error(error);
-      alert('Errore di rete nel mettere like');
+      alert('Errore di rete nel gestire il like');
     }
   };
 
@@ -204,7 +224,17 @@ export default function HomePage() {
               <p style={styles.date}>
                 {post.created_at ? new Date(post.created_at).toLocaleString('it-IT') : 'Data non disponibile'}
               </p>
-              <button onClick={() => handleLike(post.id)} style={{ marginBottom: '10px', cursor: 'pointer' }}>
+              <button
+                onClick={() => handleLike(post.id)}
+                style={{
+                  marginBottom: '10px',
+                  cursor: 'pointer',
+                  backgroundColor: likedPosts.has(post.id) ? '#ffcccb' : '#f0f0f0',
+                  border: '1px solid #ccc',
+                  padding: '6px 12px',
+                  borderRadius: '6px'
+                }}
+              >
                 ❤️ {post.likes_count}
               </button>
               <div>
@@ -327,15 +357,14 @@ const styles = {
     fontWeight: 'bold',
   },
   adminButton: {
-  marginTop: '20px',
-  padding: '10px',
-  width: '100%',
-  backgroundColor: '#333',
-  color: '#fff',
-  border: 'none',
-  borderRadius: '6px',
-  cursor: 'pointer',
-},
-
+    marginTop: '20px',
+    padding: '10px',
+    width: '100%',
+    backgroundColor: '#333',
+    color: '#fff',
+    border: 'none',
+    borderRadius: '6px',
+    cursor: 'pointer',
+  },
 };
 
