@@ -5,7 +5,7 @@ import HomePage from './HomePage';
 import PrivateRoute from './PrivateRoute';
 import Register from './Register';
 import AdminUserList from './AdminUserList';
-import Notifications from './Notifications'; // 🔔 aggiunta
+import Notifications from './Notifications';
 
 function App() {
   return (

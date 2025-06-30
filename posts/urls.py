@@ -5,8 +5,10 @@ from .views import (
     LikeViewSet,
     AdminPostViewSet,
     AdminCommentViewSet,
-    NotificationViewSet
+    NotificationViewSet,
+    unread_notifications_count
 )
+from django.urls import path
 
 router = DefaultRouter()
 router.register(r'posts', PostViewSet, basename='post')
@@ -16,6 +18,6 @@ router.register(r'admin-posts', AdminPostViewSet, basename='admin-posts')
 router.register(r'admin-comments', AdminCommentViewSet, basename='admin-comments')
 router.register(r'notifications', NotificationViewSet, basename='notifications')
 
-urlpatterns = router.urls
-
-
+urlpatterns = [
+    path('notifications/unread_count/', unread_notifications_count),
+] + router.urls

@@ -49,7 +49,9 @@ export default function HomePage() {
       if (!response.ok) throw new Error('Errore nel recupero dei post');
       const data = await response.json();
       setPosts(data);
-      const liked = data.filter(post => post.likes?.some(like => like.user === loggedUserId)).map(post => post.id);
+      const liked = data
+        .filter(post => post.likes?.some(like => like.user === loggedUserId))
+        .map(post => post.id);
       setLikedPosts(liked);
     } catch (err) {
       console.error(err);

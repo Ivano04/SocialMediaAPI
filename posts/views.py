@@ -2,6 +2,7 @@ from django.shortcuts import render
 from rest_framework import viewsets, status
 from rest_framework.permissions import IsAuthenticated, IsAuthenticatedOrReadOnly
 from rest_framework.response import Response
+from rest_framework.decorators import api_view, permission_classes
 from .models import Post, Comment, Like, Notification
 from .serializers import PostSerializer, CommentSerializer, LikeSerializer, NotificationSerializer
 from .permissions import IsAuthorOrReadOnly, IsAuthorOrAdmin, IsAdminUser
@@ -63,8 +64,14 @@ class NotificationViewSet(viewsets.ReadOnlyModelViewSet):
 
     def get_queryset(self):
         qs = Notification.objects.filter(recipient=self.request.user)
-        qs.update(is_read=True)  # ← segna letti all'accesso
+        qs.update(is_read=True)
         return qs
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def unread_notifications_count(request):
+    count = Notification.objects.filter(recipient=request.user, is_read=False).count()
+    return Response({"unread_count": count})
 
 class AdminPostViewSet(viewsets.ModelViewSet):
     queryset = Post.objects.all().order_by('-created_at')
