@@ -154,7 +154,7 @@ export default function HomePage() {
         <ul style={{ listStyleType: 'none', paddingLeft: 0 }}>
           {users.map((user) => (
             <li key={user.id} style={{ marginBottom: '10px' }}>
-              {user.username}
+              {user.username} ({user.followers_count} follower)
               {user.id !== loggedUserId && (
                 <FollowButton
                   username={user.username}
@@ -164,6 +164,7 @@ export default function HomePage() {
             </li>
           ))}
         </ul>
+
         {isAdmin && (
           <button onClick={() => navigate('/admin')} style={styles.adminButton}>
             Pannello Admin

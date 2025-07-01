@@ -139,7 +139,7 @@ const AdminUserList = () => {
       <ul style={{ listStyleType: 'none', paddingLeft: 0 }}>
         {users.map(user => (
           <li key={user.id} style={{ marginBottom: '12px' }}>
-            <span><strong>{user.username}</strong> - {user.email}</span>
+            <span><strong>{user.username}</strong> - {user.email} ({user.followers_count} follower)</span>
             <button
               style={{
                 marginLeft: '12px',

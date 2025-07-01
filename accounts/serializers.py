@@ -6,10 +6,14 @@ class UserSerializer(serializers.ModelSerializer):
     followers = serializers.PrimaryKeyRelatedField(many=True, read_only=True)
     following = serializers.PrimaryKeyRelatedField(many=True, read_only=True)
     is_staff = serializers.BooleanField(read_only=True)
+    followers_count = serializers.SerializerMethodField()
+
     class Meta:
         model = CustomUser
-        fields = ['id', 'username', 'email', 'bio', 'following', 'followers', 'is_staff']
+        fields = ['id', 'username', 'email', 'bio', 'following', 'followers', 'followers_count', 'is_staff']
 
+    def get_followers_count(self, obj):
+        return obj.followers.count()
 
 User = get_user_model()
 

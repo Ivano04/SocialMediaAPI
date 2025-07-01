@@ -26,7 +26,7 @@ class Notification(models.Model):
     verb = models.CharField(max_length=255)
     target_post = models.ForeignKey(Post, null=True, blank=True, on_delete=models.CASCADE)
     created_at = models.DateTimeField(auto_now_add=True)
-    is_read = models.BooleanField(default=False)  # ← nuovo campo
+    is_read = models.BooleanField(default=False)
 
     class Meta:
         ordering = ['-created_at']
