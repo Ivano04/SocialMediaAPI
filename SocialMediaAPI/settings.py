@@ -46,6 +46,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'corsheaders.middleware.CorsMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
@@ -123,6 +124,8 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/5.2/howto/static-files/
 
 STATIC_URL = 'static/'
+STATICFILES_DIRS = [BASE_DIR / 'templates' / 'templates/assets']
+STATIC_ROOT = BASE_DIR / 'staticfiles'
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
@@ -133,7 +136,7 @@ AUTH_USER_MODEL = 'accounts.CustomUser'
 
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:3000",  # per React
-    "http://localhost:5175",  # per Vite
+    "http://localhost:5173",  # per Vite
 ]
 
 REST_FRAMEWORK = {
