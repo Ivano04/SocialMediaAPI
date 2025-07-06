@@ -17,4 +17,7 @@ Struttura del progetto:
 - Frontend: React + Vite
 - Database: SQLite3
 
+Credenziali superuser:
+username: admin
+password: adminpassword
 
