@@ -25,7 +25,7 @@ const AdminUserList = () => {
 
     setIsAdmin(true);
 
-    fetch('${BASE_URL}/api/accounts/', {
+    fetch(`${BASE_URL}/api/accounts/`, {
       headers: {
         Authorization: `Bearer ${token}`,
       },
@@ -39,7 +39,7 @@ const AdminUserList = () => {
         alert('Errore nel recupero degli utenti');
       });
 
-    fetch('${BASE_URL}/api/posts/', {
+    fetch(`${BASE_URL}/api/posts/`, {
       headers: {
         Authorization: `Bearer ${token}`,
       },
@@ -52,7 +52,7 @@ const AdminUserList = () => {
         console.error('Errore nel caricamento post:', err);
       });
 
-    fetch('${BASE_URL}/api/comments/', {
+    fetch(`${BASE_URL}/api/comments/`, {
       headers: {
         Authorization: `Bearer ${token}`,
       },
@@ -115,7 +115,7 @@ const AdminUserList = () => {
     if (!window.confirm('Vuoi davvero eliminare questo commento?')) return;
 
     try {
-      const response = await fetch(`${BASE_URL}:8000/api/comments/${commentId}/`, {
+      const response = await fetch(`${BASE_URL}/api/comments/${commentId}/`, {
         method: 'DELETE',
         headers: {
           Authorization: `Bearer ${token}`,

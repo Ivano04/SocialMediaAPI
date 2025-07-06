@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Link } from 'react-router-dom';
+import { BASE_URL } from './main.jsx';
 
 
 export default function Login() {
@@ -13,7 +14,7 @@ export default function Login() {
   e.preventDefault();
 
   try {
-    const response = await fetch('${BASE_URL}/api/accounts/token/', {
+    const response = await fetch(`${BASE_URL}/api/accounts/token/`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

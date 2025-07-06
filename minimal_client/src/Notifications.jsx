@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { BASE_URL } from './main.jsx';
 
 export default function Notifications() {
   const [notifications, setNotifications] = useState([]);
@@ -15,7 +16,7 @@ export default function Notifications() {
 
     const fetchNotifications = async () => {
       try {
-        const response = await fetch('${BASE_URL}/api/notifications/', {
+        const response = await fetch(`${BASE_URL}/api/notifications/`, {
           headers: {
             Authorization: `Bearer ${token}`
           }
