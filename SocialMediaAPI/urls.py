@@ -24,7 +24,7 @@ from .views import index
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('api/', include('posts.urls')),  # ✅ cambia da 'api/posts/' a 'api/'
+    path('api/', include('posts.urls')),
     path('api/accounts/', include('accounts.urls')),
     path('api/token/', TokenObtainPairView.as_view()),
     path('api/token/refresh/', TokenRefreshView.as_view()),

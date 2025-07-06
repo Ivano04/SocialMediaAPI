@@ -15,7 +15,7 @@ export default function Notifications() {
 
     const fetchNotifications = async () => {
       try {
-        const response = await fetch('http://localhost:8000/api/notifications/', {
+        const response = await fetch('${BASE_URL}/api/notifications/', {
           headers: {
             Authorization: `Bearer ${token}`
           }

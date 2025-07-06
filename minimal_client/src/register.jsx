@@ -14,7 +14,7 @@ export default function Register() {
 
     try {
       // 1. REGISTRAZIONE
-      const registerResponse = await fetch('http://localhost:8000/api/accounts/register/', {
+      const registerResponse = await fetch('${BASE_URL}/api/accounts/register/', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ username, email, password }),
@@ -27,7 +27,7 @@ export default function Register() {
       }
 
       // 2. LOGIN AUTOMATICO
-      const loginResponse = await fetch('http://localhost:8000/api/accounts/token/', {
+      const loginResponse = await fetch('${BASE_URL}/api/accounts/token/', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ username, password }),

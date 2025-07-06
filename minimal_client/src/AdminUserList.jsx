@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { BASE_URL } from './main.jsx';
 
 const AdminUserList = () => {
   const [users, setUsers] = useState([]);
@@ -24,7 +25,7 @@ const AdminUserList = () => {
 
     setIsAdmin(true);
 
-    fetch('http://localhost:8000/api/accounts/', {
+    fetch('${BASE_URL}/api/accounts/', {
       headers: {
         Authorization: `Bearer ${token}`,
       },
@@ -38,7 +39,7 @@ const AdminUserList = () => {
         alert('Errore nel recupero degli utenti');
       });
 
-    fetch('http://localhost:8000/api/posts/', {
+    fetch('${BASE_URL}/api/posts/', {
       headers: {
         Authorization: `Bearer ${token}`,
       },
@@ -51,7 +52,7 @@ const AdminUserList = () => {
         console.error('Errore nel caricamento post:', err);
       });
 
-    fetch('http://localhost:8000/api/comments/', {
+    fetch('${BASE_URL}/api/comments/', {
       headers: {
         Authorization: `Bearer ${token}`,
       },
@@ -69,7 +70,7 @@ const AdminUserList = () => {
     if (!window.confirm('Vuoi davvero eliminare questo utente?')) return;
 
     try {
-      const response = await fetch(`http://localhost:8000/api/accounts/admin-users/${userId}/`, {
+      const response = await fetch(`${BASE_URL}/api/accounts/admin-users/${userId}/`, {
         method: 'DELETE',
         headers: {
           Authorization: `Bearer ${token}`,
@@ -92,7 +93,7 @@ const AdminUserList = () => {
     if (!window.confirm('Vuoi davvero eliminare questo post?')) return;
 
     try {
-      const response = await fetch(`http://localhost:8000/api/admin-posts/${postId}/`, {
+      const response = await fetch(`${BASE_URL}/api/admin-posts/${postId}/`, {
 
         method: 'DELETE',
         headers: {
@@ -114,7 +115,7 @@ const AdminUserList = () => {
     if (!window.confirm('Vuoi davvero eliminare questo commento?')) return;
 
     try {
-      const response = await fetch(`http://localhost:8000/api/comments/${commentId}/`, {
+      const response = await fetch(`${BASE_URL}:8000/api/comments/${commentId}/`, {
         method: 'DELETE',
         headers: {
           Authorization: `Bearer ${token}`,

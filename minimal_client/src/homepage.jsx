@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import FollowButton from './FollowButton';
+import { BASE_URL } from './main.jsx';
 
 export default function HomePage() {
   const [posts, setPosts] = useState([]);
@@ -26,7 +27,7 @@ export default function HomePage() {
     if (newPostImage) formData.append('image', newPostImage);
 
     try {
-      const response = await fetch('http://localhost:8000/api/posts/', {
+      const response = await fetch('${BASE_URL}/api/posts/', {
         method: 'POST',
         headers: { Authorization: `Bearer ${token}` },
         body: formData,
@@ -43,7 +44,7 @@ export default function HomePage() {
 
   const fetchPosts = async () => {
     try {
-      const response = await fetch('http://localhost:8000/api/posts/', {
+      const response = await fetch('${BASE_URL}/api/posts/', {
         headers: { Authorization: `Bearer ${token}` },
       });
       if (!response.ok) throw new Error('Errore nel recupero dei post');
@@ -63,7 +64,7 @@ export default function HomePage() {
 
   const fetchUsers = async () => {
     try {
-      const res = await fetch('http://localhost:8000/api/accounts/', {
+      const res = await fetch('${BASE_URL}/api/accounts/', {
         headers: { Authorization: `Bearer ${token}` },
       });
       if (!res.ok) throw new Error('Errore nel recupero utenti');
@@ -76,7 +77,7 @@ export default function HomePage() {
 
   const fetchNotifications = async () => {
     try {
-      const res = await fetch('http://localhost:8000/api/notifications/unread_count/', {
+      const res = await fetch('${BASE_URL}/api/notifications/unread_count/', {
         headers: { Authorization: `Bearer ${token}` },
       });
       if (!res.ok) throw new Error('Errore nel recupero notifiche');
@@ -95,7 +96,7 @@ export default function HomePage() {
 
   const handleLike = async (postId) => {
     try {
-      const response = await fetch('http://localhost:8000/api/likes/', {
+      const response = await fetch('${BASE_URL}/api/likes/', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -121,7 +122,7 @@ export default function HomePage() {
     if (!comment) return;
 
     try {
-      const response = await fetch('http://localhost:8000/api/comments/', {
+      const response = await fetch('${BASE_URL}/api/comments/', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

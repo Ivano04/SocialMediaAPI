@@ -1,6 +1,7 @@
 // src/FollowButton.jsx
 import React, { useState } from 'react';
 import axios from 'axios';
+import { BASE_URL } from './main.jsx';
 
 const FollowButton = ({ username, initialIsFollowing }) => {
   const [isFollowing, setIsFollowing] = useState(initialIsFollowing);
@@ -17,10 +18,10 @@ const FollowButton = ({ username, initialIsFollowing }) => {
       };
 
       if (isFollowing) {
-        await axios.delete(`http://localhost:8000/api/accounts/follow/${username}/`, config);
+        await axios.delete(`${BASE_URL}/api/accounts/follow/${username}/`, config);
         setIsFollowing(false);
       } else {
-        await axios.post(`http://localhost:8000/api/accounts/follow/${username}/`, {}, config);
+        await axios.post(`${BASE_URL}/api/accounts/follow/${username}/`, {}, config);
         setIsFollowing(true);
       }
     } catch (error) {

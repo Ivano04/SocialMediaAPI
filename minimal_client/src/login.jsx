@@ -13,7 +13,7 @@ export default function Login() {
   e.preventDefault();
 
   try {
-    const response = await fetch('http://localhost:8000/api/accounts/token/', {
+    const response = await fetch('${BASE_URL}/api/accounts/token/', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
