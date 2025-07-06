@@ -1,6 +1,6 @@
 // src/App.jsx
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import Login from './Login';
+import Login from './login';
 import HomePage from './HomePage';
 import PrivateRoute from './PrivateRoute';
 import Register from './Register';
