@@ -1,7 +1,7 @@
 // src/App.jsx
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import Login from './login';
-import HomePage from './homePage';
+import HomePage from './homepage';
 import PrivateRoute from './PrivateRoute';
 import Register from './register';
 import AdminUserList from './AdminUserList';
