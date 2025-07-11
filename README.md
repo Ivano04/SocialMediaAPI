@@ -21,3 +21,5 @@ Credenziali superuser:
 username: admin
 password: adminpassword
 
+link del deploy su railway: 
+lovely-light-production.up.railway.app
