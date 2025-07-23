@@ -2,6 +2,8 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import FollowButton from './FollowButton';
 import { BASE_URL } from './main.jsx';
+import { Link } from 'react-router-dom';
+
   
   export default function HomePage() {
   const [posts, setPosts] = useState([]);
