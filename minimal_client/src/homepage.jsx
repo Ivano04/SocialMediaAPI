@@ -13,6 +13,7 @@ export default function HomePage() {
   const [commentText, setCommentText] = useState({});
   const [unreadCount, setUnreadCount] = useState(0);
   const [likedPosts, setLikedPosts] = useState([]);
+  const [hoveredPost, setHoveredPost] = useState(null);
 
   const navigate = useNavigate();
   const token = localStorage.getItem('access');
@@ -155,7 +156,9 @@ export default function HomePage() {
         <ul style={{ listStyleType: 'none', paddingLeft: 0 }}>
           {users.map((user) => (
             <li key={user.id} style={{ marginBottom: '10px' }}>
-              {user.username} ({user.followers_count} follower)
+              <Link to={`/profile/${user.username}`} style={{ fontWeight: 'bold' }}>
+                {user.username}
+              </Link> ({user.followers_count} follower)
               {user.id !== loggedUserId && (
                 <FollowButton
                   username={user.username}
@@ -203,9 +206,21 @@ export default function HomePage() {
           <p style={styles.center}>Nessun post disponibile.</p>
         ) : (
           posts.map((post) => (
-            <div key={post.id} style={styles.post}>
+            <div
+              key={post.id}
+              style={{
+                ...styles.post,
+                ...(hoveredPost === post.id ? styles.postHover : {})
+              }}
+              onMouseEnter={() => setHoveredPost(post.id)}
+              onMouseLeave={() => setHoveredPost(null)}
+            >
               <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                <h4 style={styles.author}>{post.author?.username || 'Utente sconosciuto'}</h4>
+                <h4 style={styles.author}>
+                  <Link to={`/profile/${post.author.username}`}>
+                    {post.author?.username || 'Utente sconosciuto'}
+                  </Link>
+                </h4>
                 {post.author?.id !== loggedUserId && (
                   <FollowButton
                     username={post.author.username}
@@ -268,111 +283,139 @@ const styles = {
     display: 'flex',
     flexDirection: 'row',
     alignItems: 'flex-start',
-    maxWidth: '1000px',
+    maxWidth: '1200px',
     margin: '40px auto',
     gap: '40px',
     padding: '0 20px',
+    fontFamily: 'Segoe UI, Roboto, sans-serif',
   },
   sidebar: {
-    width: '250px',
-    backgroundColor: '#f0f0f0',
+    width: '280px',
+    background: 'linear-gradient(180deg, #f7f7f7 0%, #eaeaea 100%)',
     padding: '20px',
-    borderRadius: '10px',
+    borderRadius: '16px',
+    boxShadow: '0 2px 12px rgba(0, 0, 0, 0.06)',
   },
   container: {
     flex: 1,
     position: 'relative',
   },
   logout: {
-    padding: '8px 12px',
+    padding: '10px 14px',
     border: 'none',
-    backgroundColor: '#e53935',
+    backgroundColor: '#ff4d4f',
     color: '#fff',
-    borderRadius: '6px',
+    borderRadius: '8px',
     cursor: 'pointer',
+    fontWeight: 'bold',
+    transition: 'background 0.3s',
   },
   notificationButton: {
-    padding: '8px 12px',
+    padding: '10px 14px',
     border: 'none',
     backgroundColor: '#4f46e5',
     color: '#fff',
-    borderRadius: '6px',
+    borderRadius: '8px',
     cursor: 'pointer',
     position: 'relative',
+    fontWeight: 'bold',
+    transition: 'background 0.3s',
   },
   badge: {
-    backgroundColor: 'red',
+    backgroundColor: 'crimson',
     borderRadius: '50%',
     color: 'white',
-    padding: '2px 6px',
+    padding: '3px 7px',
     fontSize: '12px',
-    marginLeft: '6px',
+    position: 'absolute',
+    top: '-6px',
+    right: '-6px',
   },
   title: {
     textAlign: 'center',
     marginBottom: '30px',
-    fontSize: '28px',
-    color: '#333',
+    fontSize: '32px',
+    color: '#222',
+    fontWeight: '600',
   },
   post: {
-    background: '#f9f9f9',
-    padding: '16px',
-    borderRadius: '10px',
-    boxShadow: '0 0 10px rgba(0,0,0,0.05)',
-    marginBottom: '20px',
+    background: '#fff',
+    padding: '20px',
+    borderRadius: '14px',
+    boxShadow: '0 4px 20px rgba(0,0,0,0.06)',
+    marginBottom: '25px',
+    transition: 'transform 0.2s, box-shadow 0.2s',
+  },
+  postHover: {
+    transform: 'translateY(-4px)',
+    boxShadow: '0 8px 25px rgba(0,0,0,0.1)',
   },
   author: {
     margin: 0,
-    fontWeight: 'bold',
+    fontWeight: '600',
+    fontSize: '18px',
+    color: '#333',
   },
   content: {
-    marginTop: '8px',
-    marginBottom: '8px',
+    marginTop: '12px',
+    marginBottom: '12px',
+    fontSize: '16px',
+    lineHeight: '1.5',
+    color: '#444',
   },
   date: {
-    fontSize: '12px',
-    color: '#666',
+    fontSize: '13px',
+    color: '#999',
     textAlign: 'right',
+    fontStyle: 'italic',
   },
   error: {
     color: 'red',
     textAlign: 'center',
+    fontWeight: 'bold',
   },
   center: {
     textAlign: 'center',
     marginTop: '30px',
+    fontSize: '18px',
+    color: '#555',
   },
   postForm: {
-    marginBottom: '30px',
+    marginBottom: '40px',
     display: 'flex',
     flexDirection: 'column',
-    gap: '10px',
+    gap: '12px',
+    backgroundColor: '#f2f2f2',
+    padding: '20px',
+    borderRadius: '14px',
   },
   textarea: {
-    padding: '10px',
+    padding: '12px',
     fontSize: '16px',
-    borderRadius: '8px',
+    borderRadius: '10px',
     border: '1px solid #ccc',
     resize: 'vertical',
-    minHeight: '80px',
+    minHeight: '100px',
   },
   postButton: {
-    padding: '10px',
-    backgroundColor: '#4f46e5',
+    padding: '12px',
+    backgroundColor: '#00b894',
+    color: '#fff',
+    border: 'none',
+    borderRadius: '10px',
+    cursor: 'pointer',
+    fontWeight: 'bold',
+    transition: 'background 0.3s',
+  },
+  adminButton: {
+    marginTop: '30px',
+    padding: '12px',
+    width: '100%',
+    backgroundColor: '#333',
     color: '#fff',
     border: 'none',
     borderRadius: '8px',
     cursor: 'pointer',
     fontWeight: 'bold',
-  },
-  adminButton: {
-    marginTop: '20px',
-    padding: '10px',
-    width: '100%',
-    backgroundColor: '#333',
-    color: '#fff',
-    border: 'none',
-    borderRadius: '6px',
-    cursor: 'pointer',
   },
 };
