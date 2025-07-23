@@ -2,7 +2,7 @@
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import Login from './login';
 import Register from './register';
-import HomePage from './HomePage';
+import HomePage from './homepage';
 import AdminUserList from './AdminUserList';
 import Notifications from './Notifications';
 import PrivateRoute from './PrivateRoute';
