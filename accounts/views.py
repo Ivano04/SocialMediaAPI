@@ -1,47 +1,34 @@
 from rest_framework import generics, viewsets
+from .models import CustomUser
+from .serializers import UserSerializer
+from rest_framework.permissions import IsAuthenticated, AllowAny, IsAdminUser
+from .serializers import RegisterSerializer
+from django.contrib.auth import get_user_model
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from rest_framework.permissions import IsAuthenticated, AllowAny, IsAdminUser
 from django.shortcuts import get_object_or_404
-from django.contrib.auth import get_user_model
-
-from .models import CustomUser
-from .serializers import (
-    UserSerializer,
-    RegisterSerializer,
-    UserProfileSerializer,
-)
 from posts.models import Notification
 
 User = get_user_model()
-
 
 class UserAdminViewSet(viewsets.ModelViewSet):
     queryset = CustomUser.objects.all()
     serializer_class = UserSerializer
     permission_classes = [IsAdminUser]
-
-
 class RegisterUserView(generics.CreateAPIView):
     queryset = User.objects.all()
     serializer_class = RegisterSerializer
     permission_classes = [AllowAny]
-
-
 class UserList(generics.ListAPIView):
     """
-    Restituisce la lista di tutti gli utenti registrati.
+    Lista degli utenti registrati.
     Accessibile solo se autenticati via JWT.
     """
     queryset = CustomUser.objects.all()
     serializer_class = UserSerializer
     permission_classes = [IsAuthenticated]
 
-
 class FollowUserView(APIView):
-    """
-    Permette all'utente autenticato di seguire o smettere di seguire un altro utente.
-    """
     permission_classes = [IsAuthenticated]
 
     def post(self, request, username):
@@ -72,26 +59,9 @@ class FollowUserView(APIView):
         request.user.following.remove(user_to_unfollow)
         return Response({"detail": f"You have unfollowed {username}."}, status=204)
 
-
 class AdminSelfView(APIView):
-    """
-    Restituisce i dati dell'utente autenticato.
-    Utilizzata per l'accesso admin personale.
-    """
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
         serializer = UserSerializer(request.user)
-        return Response(serializer.data)
-
-
-class UserProfileView(APIView):
-    """
-    Restituisce il profilo dettagliato di un utente (username, email, bio, follower/following, post).
-    """
-    permission_classes = [IsAuthenticated]
-
-    def get(self, request, username):
-        user = get_object_or_404(CustomUser, username=username)
-        serializer = UserProfileSerializer(user, context={'request': request})
         return Response(serializer.data)
