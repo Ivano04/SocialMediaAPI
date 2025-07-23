@@ -1,17 +1,20 @@
 // src/App.jsx
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import Login from './login';
-import HomePage from './homepage';
-import PrivateRoute from './PrivateRoute';
-import Register from './register';
+import Login from './Login';
+import Register from './Register';
+import HomePage from './HomePage';
 import AdminUserList from './AdminUserList';
 import Notifications from './Notifications';
+import PrivateRoute from './PrivateRoute';
+import UserProfile from './UserProfile'; // ✅ Import del profilo utente
 
 function App() {
   return (
     <Router>
       <Routes>
         <Route path="/" element={<Login />} />
+        <Route path="/register" element={<Register />} />
+
         <Route
           path="/home"
           element={
@@ -20,7 +23,7 @@ function App() {
             </PrivateRoute>
           }
         />
-        <Route path="/register" element={<Register />} />
+
         <Route
           path="/admin"
           element={
@@ -29,11 +32,21 @@ function App() {
             </PrivateRoute>
           }
         />
+
         <Route
           path="/notifications"
           element={
             <PrivateRoute>
               <Notifications />
+            </PrivateRoute>
+          }
+        />
+
+        <Route
+          path="/profile/:username"
+          element={
+            <PrivateRoute>
+              <UserProfile />
             </PrivateRoute>
           }
         />
